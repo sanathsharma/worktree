@@ -20,6 +20,16 @@ async fn get_directories() -> Vec<String> {
   }
 }
 
+async fn get_sort_option() -> Option<String> {
+  let config = config::get_config().await;
+  let matches = args::get_matches();
+
+  matches
+    .get_one::<String>("sort")
+    .cloned()
+    .or_else(|| config.sort)
+}
+
 async fn collect_all_worktrees(directories: Vec<String>) -> Vec<Worktree> {
   let mut set = JoinSet::new();
 
@@ -232,10 +242,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut all_worktrees = collect_all_worktrees(directories).await;
 
   // Handle sorting
-  let matches = args::get_matches();
-  if let Some("tmux") = matches.get_one::<String>("sort").map(|s| s.as_str()) {
-    let tmux_sessions = get_tmux_sessions();
-    sort_worktrees_by_tmux(&mut all_worktrees, &tmux_sessions);
+  if let Some(sort_option) = get_sort_option().await {
+    if sort_option == "tmux" {
+      let tmux_sessions = get_tmux_sessions();
+      sort_worktrees_by_tmux(&mut all_worktrees, &tmux_sessions);
+    }
   }
 
   let formatted_lines = format_worktrees(&all_worktrees);

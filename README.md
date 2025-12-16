@@ -103,7 +103,8 @@ Create a config file at `~/.config/worktree/config.json`:
     "~/work",
     "~/personal",
     "/path/to/other/repos_parent"
-  ]
+  ],
+  "sort": "tmux"
 }
 ```
 
@@ -121,7 +122,7 @@ worktree --help
 
 - `-d, --directories <DIRS>`: Comma-separated list of directories to scan
 - `-c, --config <PATH>`: Path to config file (default: `~/.config/worktree/config.json`)
-- `--sort <CRITERIA>`: Sort worktrees by criteria (currently supports: `tmux`)
+- `--sort <CRITERIA>`: Sort worktrees by criteria (currently supports: `tmux`). Can also be set in config file.
 
 ## Sorting Options
 

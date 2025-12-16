@@ -8,6 +8,7 @@ use crate::args;
 #[derive(Deserialize, Default)]
 pub struct Config {
   pub directories: Vec<String>,
+  pub sort: Option<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
