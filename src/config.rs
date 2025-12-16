@@ -23,7 +23,10 @@ type Result<T> = std::result::Result<T, ConfigError>;
 
 async fn get_config_from_path(config_path: &str) -> Result<Config> {
   let expanded_path = shellexpand::tilde(config_path);
-  let mut file = OpenOptions::new().read(true).open(expanded_path.as_ref()).await?;
+  let mut file = OpenOptions::new()
+    .read(true)
+    .open(expanded_path.as_ref())
+    .await?;
   let mut contents = String::new();
   file.read_to_string(&mut contents).await?;
 
@@ -42,7 +45,10 @@ pub async fn get_config() -> Config {
   match get_config_from_path(config_path).await {
     Ok(config) => config,
     Err(_) => {
-      eprintln!("Info: No config found at {}, using default config", config_path);
+      eprintln!(
+        "Info: No config found at {}, using default config",
+        config_path
+      );
       Config::default()
     }
   }
