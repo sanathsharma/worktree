@@ -121,6 +121,25 @@ worktree --help
 
 - `-d, --directories <DIRS>`: Comma-separated list of directories to scan
 - `-c, --config <PATH>`: Path to config file (default: `~/.config/worktree/config.json`)
+- `--sort <CRITERIA>`: Sort worktrees by criteria (currently supports: `tmux`)
+
+## Sorting Options
+
+### Tmux Sorting
+
+When using `--sort=tmux`, worktrees are sorted based on tmux session activity with a specific priority order:
+
+1. **Previous session** - The tmux session you were in before the current one (most recent non-current session)
+2. **Current session** - Your currently active tmux session
+3. **Other recent sessions** - Remaining tmux sessions sorted by most recently used
+4. **Worktrees without tmux sessions** - Sorted alphabetically at the end
+
+This ordering makes it easy to quickly swap between your current and previous tmux sessions.
+
+```bash
+# Sort worktrees by tmux session activity
+worktree --sort=tmux
+```
 
 ## How It Works
 

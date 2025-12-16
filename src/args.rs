@@ -20,5 +20,12 @@ pub fn get_matches() -> ArgMatches {
         .default_value("~/.config/worktree/config.json")
         .value_name("PATH"),
     )
+    .arg(
+      Arg::new("sort")
+        .long("sort")
+        .help("Sort worktrees by criteria")
+        .value_name("CRITERIA")
+        .value_parser(["tmux"]),
+    )
     .get_matches()
 }
