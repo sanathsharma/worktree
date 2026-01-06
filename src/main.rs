@@ -144,6 +144,63 @@ fn get_current_tmux_session() -> Option<String> {
   }
 }
 
+/// Get the session timestamp for a worktree, checking both direct name and bare repo prefix pattern
+fn get_session_timestamp(dir_path: &str, tmux_sessions: &HashMap<String, u64>) -> u64 {
+  let dir_name = std::path::Path::new(dir_path)
+    .file_name()
+    .and_then(|n| n.to_str())
+    .unwrap_or(dir_path);
+
+  // First check direct match (e.g., "main")
+  if let Some(&timestamp) = tmux_sessions.get(dir_name) {
+    return timestamp;
+  }
+
+  // Check for bare repo pattern with parent prefix (e.g., "my_project_git/main")
+  // sesh creates session names with parent directory as prefix, replacing '.' with '_'
+  let path = std::path::Path::new(dir_path);
+  if let (Some(parent), Some(dir_name_str)) = (
+    path.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()),
+    path.file_name().and_then(|n| n.to_str()),
+  ) {
+    let parent_formatted = parent.replace('.', "_");
+    let prefixed_name = format!("{}/{}", parent_formatted, dir_name_str);
+    if let Some(&timestamp) = tmux_sessions.get(&prefixed_name) {
+      return timestamp;
+    }
+  }
+
+  0
+}
+
+/// Check if a worktree path matches a given session name, considering bare repo prefix pattern
+fn matches_session_name(dir_path: &str, session_name: &str) -> bool {
+  let dir_name = std::path::Path::new(dir_path)
+    .file_name()
+    .and_then(|n| n.to_str())
+    .unwrap_or(dir_path);
+
+  // Direct match (e.g., "main" == "main")
+  if dir_name == session_name {
+    return true;
+  }
+
+  // Check for bare repo pattern with parent prefix (e.g., "my_project_git/main")
+  let path = std::path::Path::new(dir_path);
+  if let (Some(parent), Some(dir_name_str)) = (
+    path.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()),
+    path.file_name().and_then(|n| n.to_str()),
+  ) {
+    let parent_formatted = parent.replace('.', "_");
+    let prefixed_name = format!("{}/{}", parent_formatted, dir_name_str);
+    if prefixed_name == session_name {
+      return true;
+    }
+  }
+
+  false
+}
+
 fn sort_worktrees_by_tmux(worktrees: &mut [Worktree], tmux_sessions: &HashMap<String, u64>) {
   let current_session = get_current_tmux_session();
 
@@ -168,13 +225,27 @@ fn sort_worktrees_by_tmux(worktrees: &mut [Worktree], tmux_sessions: &HashMap<St
       .and_then(|n| n.to_str())
       .unwrap_or(&b.path);
 
-    let time_a = tmux_sessions.get(dir_name_a).copied().unwrap_or(0);
-    let time_b = tmux_sessions.get(dir_name_b).copied().unwrap_or(0);
+    // Use helper function to check both direct and prefixed session names
+    let time_a = get_session_timestamp(&a.path, tmux_sessions);
+    let time_b = get_session_timestamp(&b.path, tmux_sessions);
 
-    let is_previous_a = previous_session.as_deref() == Some(dir_name_a);
-    let is_previous_b = previous_session.as_deref() == Some(dir_name_b);
-    let is_current_a = current_session.as_deref() == Some(dir_name_a);
-    let is_current_b = current_session.as_deref() == Some(dir_name_b);
+    // Check if session names match, considering bare repo prefix pattern
+    let is_previous_a = previous_session
+      .as_deref()
+      .map(|s| matches_session_name(&a.path, s))
+      .unwrap_or(false);
+    let is_previous_b = previous_session
+      .as_deref()
+      .map(|s| matches_session_name(&b.path, s))
+      .unwrap_or(false);
+    let is_current_a = current_session
+      .as_deref()
+      .map(|s| matches_session_name(&a.path, s))
+      .unwrap_or(false);
+    let is_current_b = current_session
+      .as_deref()
+      .map(|s| matches_session_name(&b.path, s))
+      .unwrap_or(false);
 
     // Priority order:
     // 1. Previous session (most recent non-current session)
