@@ -105,7 +105,7 @@ fn format_worktrees(worktrees: &[Worktree]) -> Vec<String> {
 
 fn get_tmux_sessions() -> HashMap<String, u64> {
   let output = match Command::new("tmux")
-    .args(&[
+    .args([
       "list-sessions",
       "-F",
       "#{session_name}:#{session_last_attached}",
@@ -120,10 +120,10 @@ fn get_tmux_sessions() -> HashMap<String, u64> {
   let mut sessions = HashMap::new();
 
   for line in stdout.lines() {
-    if let Some((name, timestamp)) = line.split_once(':') {
-      if let Ok(ts) = timestamp.parse::<u64>() {
-        sessions.insert(name.to_string(), ts);
-      }
+    if let Some((name, timestamp)) = line.split_once(':')
+      && let Ok(ts) = timestamp.parse::<u64>()
+    {
+      sessions.insert(name.to_string(), ts);
     }
   }
 
@@ -132,7 +132,7 @@ fn get_tmux_sessions() -> HashMap<String, u64> {
 
 fn get_current_tmux_session() -> Option<String> {
   let output = Command::new("tmux")
-    .args(&["display-message", "-p", "#S"])
+    .args(["display-message", "-p", "#S"])
     .output()
     .ok()?;
 
@@ -320,11 +320,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut all_worktrees = collect_all_worktrees(directories).await;
 
   // Handle sorting
-  if let Some(sort_option) = get_sort_option().await {
-    if sort_option == "tmux" {
-      let tmux_sessions = get_tmux_sessions();
-      sort_worktrees_by_tmux(&mut all_worktrees, &tmux_sessions);
-    }
+  if let Some(sort_option) = get_sort_option().await
+    && sort_option == "tmux"
+  {
+    let tmux_sessions = get_tmux_sessions();
+    sort_worktrees_by_tmux(&mut all_worktrees, &tmux_sessions);
   }
 
   let formatted_lines = format_worktrees(&all_worktrees);
