@@ -160,7 +160,10 @@ fn get_session_timestamp(dir_path: &str, tmux_sessions: &HashMap<String, u64>) -
   // sesh creates session names with parent directory as prefix, replacing '.' with '_'
   let path = std::path::Path::new(dir_path);
   if let (Some(parent), Some(dir_name_str)) = (
-    path.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()),
+    path
+      .parent()
+      .and_then(|p| p.file_name())
+      .and_then(|n| n.to_str()),
     path.file_name().and_then(|n| n.to_str()),
   ) {
     let parent_formatted = parent.replace('.', "_");
@@ -188,7 +191,10 @@ fn matches_session_name(dir_path: &str, session_name: &str) -> bool {
   // Check for bare repo pattern with parent prefix (e.g., "my_project_git/main")
   let path = std::path::Path::new(dir_path);
   if let (Some(parent), Some(dir_name_str)) = (
-    path.parent().and_then(|p| p.file_name()).and_then(|n| n.to_str()),
+    path
+      .parent()
+      .and_then(|p| p.file_name())
+      .and_then(|n| n.to_str()),
     path.file_name().and_then(|n| n.to_str()),
   ) {
     let parent_formatted = parent.replace('.', "_");
@@ -278,14 +284,15 @@ async fn run_fzf_selection(
   formatted_lines: Vec<String>,
 ) -> Result<Option<String>, Box<dyn std::error::Error>> {
   let mut fzf = Command::new("fzf")
-		.arg("--height=20")
-		.arg("--reverse")
-		.arg("--delimiter=\t")
-		.arg("--with-nth=1,5")
-		.arg("--preview=echo 'Path: {2}' && echo 'Branch: {3}' && echo 'Commit: {4}' && echo '' && ls -la {2}")
-		.stdin(Stdio::piped())
-		.stdout(Stdio::piped())
-		.spawn()?;
+    .arg("--height=20")
+    .arg("--reverse")
+    .arg("--delimiter=\t")
+    .arg("--with-nth=1,5")
+    .arg("--no-multi")
+    .arg("--preview=echo 'Path: {2}' && echo 'Branch: {3}' && echo 'Commit: {4}' && echo '' && ls -la {2}")
+    .stdin(Stdio::piped())
+    .stdout(Stdio::piped())
+    .spawn()?;
 
   if let Some(mut stdin) = fzf.stdin.take() {
     for line in formatted_lines {
