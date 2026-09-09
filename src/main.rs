@@ -27,7 +27,7 @@ async fn get_sort_option() -> Option<String> {
   matches
     .get_one::<String>("sort")
     .cloned()
-    .or_else(|| config.sort)
+    .or(config.sort)
 }
 
 async fn collect_all_worktrees(directories: Vec<String>) -> Vec<Worktree> {

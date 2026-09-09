@@ -16,7 +16,7 @@ type Result<T> = std::result::Result<T, GitError>;
 
 pub async fn is_git_repo(dir: &str) -> bool {
   let output = Command::new("git")
-    .args(&["rev-parse", "--git-dir"])
+    .args(["rev-parse", "--git-dir"])
     .current_dir(dir)
     .output()
     .await;
@@ -31,7 +31,7 @@ pub async fn is_git_repo(dir: &str) -> bool {
 
 pub async fn get_worktrees(dir: &str) -> Result<Vec<Worktree>> {
   let output = Command::new("git")
-    .args(&["worktree", "list", "--porcelain"])
+    .args(["worktree", "list", "--porcelain"])
     .current_dir(dir)
     .output()
     .await
